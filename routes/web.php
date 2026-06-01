@@ -52,9 +52,8 @@ Route::middleware(['auth'])->group(function () {
         return view('intelligence.forecast');
     })->name('intelligence.forecast');
 
-    Route::get('/reports', function () {
-        return view('intelligence.reports');
-    })->name('intelligence.reports');
+    Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('intelligence.reports');
+
     
     // Web Blade CRUD Resource Routes
     Route::resource('kategoris', KategoriController::class);
