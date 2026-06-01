@@ -55,7 +55,7 @@
                 <?php
                     $logo_path = public_path('img/logo-2.png');
                     $logo_src = '';
-                    if (file_exists($logo_path)) {
+                    if (file_exists($logo_path) && extension_loaded('gd')) {
                         $logo_data = base64_encode(file_get_contents($logo_path));
                         $logo_src = 'data:image/png;base64,' . $logo_data;
                     }
