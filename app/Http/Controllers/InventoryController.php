@@ -9,9 +9,18 @@ use Illuminate\Http\Request;
 
 class InventoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $produks = Produk::with(['kategori', 'supplier'])->latest()->paginate(10);
+        $query = Produk::with(['kategori', 'supplier'])->latest();
+        
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where('nama_produk', 'like', "%{$search}%")
+                  ->orWhere('kode_produk', 'like', "%{$search}%");
+        }
+        
+        $produks = $query->paginate(10)->appends($request->query());
+        
         return view('inventory.index', compact('produks'));
     }
 

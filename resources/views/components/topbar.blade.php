@@ -6,10 +6,10 @@
     
   <div class="topbar-spacer"></div>
   
-  <div class="topbar-search">
+  <form action="{{ route('inventory.index') }}" method="GET" class="topbar-search">
     <i class="ti ti-search" style="color:var(--gray-400);font-size:14px"></i>
-    <input type="text" placeholder="Search inventory, products...">
-  </div>
+    <input type="text" name="search" placeholder="Search inventory, products..." value="{{ request('search') }}">
+  </form>
   
   <div style="position:relative">
     <button class="topbar-btn" onclick="toggleNotif()">
@@ -32,7 +32,6 @@
     </div>
   </div>
   
-  <button class="topbar-btn"><i class="ti ti-help-circle"></i></button>
   <div style="position:relative">
     <div class="user-profile-trigger" onclick="toggleProfileDropdown()" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 8px;border-radius:8px;transition:0.15s">
       <div class="user-avatar" style="width:32px;height:32px;font-size:11px;margin:0">
