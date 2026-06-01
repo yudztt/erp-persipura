@@ -1,7 +1,7 @@
 <div id="aiChatWidget">
     <!-- Chat Button -->
     <button id="aiChatBtn" onclick="toggleAIChat()">
-        <i class="ti ti-robot"></i>
+        <i class="ti ti-message-circle"></i>
     </button>
 
     <!-- Chat Panel -->
