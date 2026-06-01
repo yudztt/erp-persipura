@@ -11,7 +11,7 @@ class InventoryController extends Controller
 {
     public function index()
     {
-        $produks = Produk::with(['kategori', 'supplier'])->latest()->get();
+        $produks = Produk::with(['kategori', 'supplier'])->latest()->paginate(10);
         return view('inventory.index', compact('produks'));
     }
 

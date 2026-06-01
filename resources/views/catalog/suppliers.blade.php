@@ -84,6 +84,7 @@
         @endforelse
       </tbody>
     </table>
+    {{ $suppliers->links() }}
   </div>
 
 @endsection

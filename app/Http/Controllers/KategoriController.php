@@ -9,7 +9,7 @@ class KategoriController extends Controller
 {
     public function index()
     {
-        $kategoris = Kategori::withCount('produks')->orderBy('nama_kategori')->get();
+        $kategoris = Kategori::withCount('produks')->orderBy('nama_kategori')->paginate(10);
 
         return view('catalog.categories', compact('kategoris'));
     }
