@@ -15,49 +15,46 @@ class ChatbotController extends Controller
         ]);
 
         $userMessage = $request->input('message');
-        $apiKey = config('services.gemini.api_key');
+        $apiKey = config('services.openrouter.api_key');
 
         if (empty($apiKey)) {
             return response()->json([
-                'reply' => 'Maaf, kunci API (GEMINI_API_KEY) belum diatur di sistem. Silakan hubungi administrator.'
-            ], 200); // Return 200 to show gracefully in chat
+                'reply' => 'Maaf, kunci API (OPENROUTER_API_KEY) belum diatur di sistem. Silakan hubungi administrator.'
+            ], 200);
         }
 
-        // Context / System Prompt
-        $systemPrompt = "Anda adalah Asisten AI untuk Sistem ERP Cendrawasih Karsa Store (Manajemen Inventori dan Prediksi Penjualan). 
-Jawablah pertanyaan dengan ramah, profesional, ringkas, dan menggunakan bahasa Indonesia. 
-Jangan menggunakan format markdown rumit, gunakan teks sederhana dan list jika perlu. 
-Jika ditanya siapa Anda, katakan Anda adalah Asisten AI Cendrawasih Karsa.";
-
-        $fullPrompt = $systemPrompt . "\n\nPertanyaan pengguna: " . $userMessage;
+        // System prompt konteks ERP
+        $systemPrompt = "Anda adalah Asisten AI untuk Sistem ERP Cendrawasih Karsa Store (Manajemen Inventori dan Prediksi Penjualan). " .
+            "Jawablah pertanyaan dengan ramah, profesional, ringkas, dan menggunakan bahasa Indonesia. " .
+            "Jangan menggunakan format markdown rumit, gunakan teks sederhana dan list jika perlu. " .
+            "Jika ditanya siapa Anda, katakan Anda adalah Asisten AI Cendrawasih Karsa.";
 
         try {
             $response = Http::withHeaders([
-                'Content-Type' => 'application/json',
-            ])->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $apiKey, [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $fullPrompt]
-                        ]
-                    ]
+                'Authorization'  => 'Bearer ' . $apiKey,
+                'Content-Type'   => 'application/json',
+                'HTTP-Referer'   => config('app.url'),
+                'X-Title'        => 'ERP Cendrawasih Karsa Store',
+            ])->post('https://openrouter.ai/api/v1/chat/completions', [
+                'model' => config('services.openrouter.model', 'google/gemini-2.0-flash-exp:free'),
+                'messages' => [
+                    ['role' => 'system', 'content' => $systemPrompt],
+                    ['role' => 'user',   'content' => $userMessage],
                 ],
-                'generationConfig' => [
-                    'temperature' => 0.7,
-                    'maxOutputTokens' => 800,
-                ]
+                'max_tokens' => 800,
+                'temperature' => 0.7,
             ]);
 
             if ($response->successful()) {
                 $data = $response->json();
-                
-                if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
-                    $reply = $data['candidates'][0]['content']['parts'][0]['text'];
+
+                if (isset($data['choices'][0]['message']['content'])) {
+                    $reply = $data['choices'][0]['message']['content'];
                     return response()->json(['reply' => trim($reply)]);
                 }
             }
 
-            Log::error('Gemini API Error: ' . $response->body());
+            Log::error('OpenRouter API Error: ' . $response->body());
             return response()->json([
                 'reply' => 'Maaf, saya sedang mengalami kendala teknis saat menghubungi server AI. Silakan coba beberapa saat lagi.'
             ], 200);
