@@ -213,6 +213,11 @@
     <!-- Modals Terpusat (Bisa diisi oleh child view) -->
     @stack('modals')
 
+    <!-- AI Chatbot Global -->
+    @auth
+        @include('components.chatbot')
+    @endauth
+
     <!-- Scripts Global -->
     <script>
         function toggleSidebar(){

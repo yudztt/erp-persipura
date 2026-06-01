@@ -26,6 +26,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Protected Routes (Require Authentication)
 Route::middleware(['auth'])->group(function () {
 
+    // Chatbot Route
+    Route::post('/chatbot/send', [App\Http\Controllers\ChatbotController::class, 'sendMessage'])->name('chatbot.send');
+
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     // Inventory Routes (Web Blade CRUD)
