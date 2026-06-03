@@ -11,13 +11,31 @@ class InventoryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Produk::with(['kategori', 'supplier'])->latest();
+        $query = Produk::with(['kategori', 'supplier']);
         
-        if ($request->has('search') && $request->search != '') {
+        // Filter Pencarian (Nama Produk / SKU)
+        if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('nama_produk', 'like', "%{$search}%")
+            $query->where(function($q) use ($search) {
+                $q->where('nama_produk', 'like', "%{$search}%")
                   ->orWhere('kode_produk', 'like', "%{$search}%");
+            });
         }
+        
+        // Filter Berdasarkan Status Stok
+        if ($request->filled('status') && $request->status !== 'all') {
+            $status = $request->status;
+            if ($status === 'Stok Rendah') {
+                $query->whereColumn('stok', '<=', 'stok_minimum');
+            } elseif ($status === 'Stok Sedang') {
+                $query->whereColumn('stok', '>', 'stok_minimum')
+                      ->whereColumn('stok', '<=', \DB::raw('stok_minimum * 2'));
+            } elseif ($status === 'Stok Banyak') {
+                $query->whereColumn('stok', '>', \DB::raw('stok_minimum * 2'));
+            }
+        }
+        
+        $query->latest();
         
         $produks = $query->paginate(10)->appends($request->query());
         

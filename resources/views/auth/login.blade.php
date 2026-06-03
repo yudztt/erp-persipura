@@ -76,7 +76,7 @@
                     <span class="spinner"></span>
                     <span class="btn-text">
                         <i class="ti ti-login"></i>
-                        Sign In
+                        Masuk
                     </span>
                 </button>
             </form>

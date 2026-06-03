@@ -41,7 +41,15 @@ return [
 
     'openrouter' => [
         'api_key' => env('OPENROUTER_API_KEY'),
-        'model'   => env('OPENROUTER_MODEL', 'google/gemini-2.0-flash-exp:free'),
+        'model'   => env('OPENROUTER_MODEL', 'deepseek/deepseek-r1:free'), // model gratis
+    ],
+
+    // Free LLM API Keys (OpenAI-compatible)
+    // Source: https://github.com/alistaitsacle/free-llm-api-keys
+    // Base URL: https://aiapiv2.pekpik.com/v1
+    'pekpik' => [
+        'api_key' => env('PEKPIK_API_KEY'),
+        'model'   => env('PEKPIK_MODEL', 'gemini-2.5-flash'), // default model
     ],
 
 ];

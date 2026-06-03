@@ -58,6 +58,17 @@
       <div style="font-size:12px; font-weight:600; color:#059669">Margin {{ number_format($margin, 1, ',', '.') }}%</div>
     </div>
   </div>
+  
+  <!-- AI Analisis & Rekomendasi Laporan Penjualan -->
+  @if($type === 'sales' && !empty($aiAnalysis))
+  <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 24px; border-left: 5px solid #e21c2c; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+          <i class="ti ti-sparkles" style="color: #fca5a5; font-size: 20px;"></i>
+          <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">AI Analisis Performa &amp; Rekomendasi</span>
+      </div>
+      <p style="font-size: 13px; line-height: 1.6; color: #cbd5e1; margin: 0; font-weight: 500;">{{ $aiAnalysis }}</p>
+  </div>
+  @endif
 
   <!-- Tabel Ringkasan Penjualan / Inventaris -->
   <div class="table-card" style="background:#fff; border-radius:8px; border:1px solid var(--gray-200); overflow:hidden">
@@ -73,7 +84,9 @@
             <th style="padding:12px 16px; font-size:11px; font-weight:600; color:var(--gray-500); text-transform:uppercase">UNIT TERJUAL</th>
             <th style="padding:12px 16px; font-size:11px; font-weight:600; color:var(--gray-500); text-transform:uppercase">PENDAPATAN (Rp)</th>
             <th style="padding:12px 16px; font-size:11px; font-weight:600; color:var(--gray-500); text-transform:uppercase">RATA-RATA HARGA (Rp)</th>
-            <th style="padding:12px 16px; font-size:11px; font-weight:600; color:var(--gray-500); text-transform:uppercase">SISA STOK</th>
+            @if($type === 'inventory')
+              <th style="padding:12px 16px; font-size:11px; font-weight:600; color:var(--gray-500); text-transform:uppercase">SISA STOK</th>
+            @endif
           </tr>
         </thead>
         <tbody>
@@ -84,11 +97,13 @@
             <td style="padding:14px 16px; font-size:14px; color:var(--gray-600)">{{ $row['unit_terjual'] }}</td>
             <td style="padding:14px 16px; font-size:14px; font-weight:600; color:#1E293B">{{ number_format($row['pendapatan'], 0, ',', '.') }}</td>
             <td style="padding:14px 16px; font-size:14px; color:var(--gray-600)">{{ number_format($row['rata_rata_harga'], 0, ',', '.') }}</td>
-            <td style="padding:14px 16px; font-size:14px; color:var(--gray-600)">{{ $row['sisa_stok'] }}</td>
+            @if($type === 'inventory')
+              <td style="padding:14px 16px; font-size:14px; color:var(--gray-600)">{{ $row['sisa_stok'] }}</td>
+            @endif
           </tr>
           @empty
           <tr>
-            <td colspan="6" style="padding:14px 16px; font-size:14px; color:var(--gray-600); text-align:center;">Tidak ada data pada periode ini.</td>
+            <td colspan="{{ $type === 'inventory' ? 6 : 5 }}" style="padding:14px 16px; font-size:14px; color:var(--gray-600); text-align:center;">Tidak ada data pada periode ini.</td>
           </tr>
           @endforelse
         </tbody>

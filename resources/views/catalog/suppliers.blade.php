@@ -165,11 +165,7 @@
 
 @endpush
 
-@push('styles')
-<style>
-  textarea.form-input { padding: 9px 12px; }
-</style>
-@endpush
+
 
 @push('scripts')
 <script>
@@ -231,7 +227,3 @@
   @endif
 </script>
 @endpush
-
-
-
-dsjnanfjdansa,sd ask dk

@@ -1,29 +1,33 @@
 @extends('layouts.app')
 
 @section('title', 'Inventory - Cendrawasih Karsa Store')
-@section('header_title', 'Inventory')
+@section('header_title', 'Inventaris')
 @section('header_breadcrumb', '/ Product List')
 
 @section('content')
 
 
   <!-- Toolbar -->
-  <div class="toolbar">
+  <form action="{{ route('inventory.index') }}" method="GET" class="toolbar" id="filterForm">
     <div class="search-box">
       <i class="ti ti-search" style="color:var(--gray-400);font-size:14px"></i>
-      <input type="text" placeholder="Search products..." id="searchInput">
+      <input type="text" name="search" placeholder="Search products..." id="searchInput" value="{{ request('search') }}">
     </div>
-    <button class="filter-btn">
-      <i class="ti ti-filter"></i> Filter
-    </button>
-    <button class="filter-btn">
-      <i class="ti ti-download"></i> Export
-    </button>
+    <div style="position: relative; display: inline-flex; align-items: center;">
+      <i class="ti ti-filter" style="position: absolute; left: 12px; pointer-events: none; color: var(--gray-500); font-size: 14px;"></i>
+      <select id="statusFilter" name="status" class="filter-btn" style="appearance: none; -webkit-appearance: none; padding-left: 32px; padding-right: 28px; outline: none; cursor: pointer;" onchange="this.form.submit()">
+        <option value="all" {{ request('status') == 'all' ? 'selected' : '' }}>Semua Status</option>
+        <option value="Stok Banyak" {{ request('status') == 'Stok Banyak' ? 'selected' : '' }}>Stok Banyak</option>
+        <option value="Stok Sedang" {{ request('status') == 'Stok Sedang' ? 'selected' : '' }}>Stok Sedang</option>
+        <option value="Stok Rendah" {{ request('status') == 'Stok Rendah' ? 'selected' : '' }}>Stok Rendah</option>
+      </select>
+      <i class="ti ti-chevron-down" style="position: absolute; right: 10px; pointer-events: none; color: var(--gray-500); font-size: 14px;"></i>
+    </div>
     <div style="flex:1"></div>
-    <button class="btn btn-primary" onclick="openModal('addProductModal')">
+    <button type="button" class="btn btn-primary" onclick="openModal('addProductModal')">
       <i class="ti ti-plus"></i> Add Product
     </button>
-  </div>
+  </form>
 
   <!-- Table -->
   <div class="table-card">
@@ -56,11 +60,11 @@
           <td><strong>{{ number_format($produk->stok) }}</strong> units</td>
           <td>
             @if($produk->stok <= $produk->stok_minimum)
-              <span class="badge badge-danger">Low Stock</span>
+              <span class="badge badge-danger">Stok Rendah</span>
             @elseif($produk->stok <= $produk->stok_minimum * 2)
-              <span class="badge badge-warning">Medium</span>
+              <span class="badge badge-warning">Stok Sedang</span>
             @else
-              <span class="badge badge-success">In Stock</span>
+              <span class="badge badge-success">Stok Banyak</span>
             @endif
           </td>
           <td>Rp {{ number_format($produk->harga_jual, 0, ',', '.') }}</td>

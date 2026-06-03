@@ -34,13 +34,11 @@ Route::middleware(['auth'])->group(function () {
     // Inventory Routes (Web Blade CRUD)
     Route::resource('inventory', InventoryController::class);
 
-    Route::get('/stock-in', function () {
-        return view('inventory.stockin');
-    })->name('inventory.stockin');
+    Route::get('/stock-in', [App\Http\Controllers\PembelianController::class, 'webIndex'])->name('inventory.stockin');
+    Route::post('/stock-in', [App\Http\Controllers\PembelianController::class, 'webStore'])->name('inventory.stockin.store');
 
-    Route::get('/stock-out', function () {
-        return view('inventory.stockout');
-    })->name('inventory.stockout');
+    Route::get('/stock-out', [App\Http\Controllers\PenjualanController::class, 'webIndex'])->name('inventory.stockout');
+    Route::post('/stock-out', [App\Http\Controllers\PenjualanController::class, 'webStore'])->name('inventory.stockout.store');
 
     // Warehouse (static view)
     Route::get('/warehouse', function () {
@@ -48,9 +46,8 @@ Route::middleware(['auth'])->group(function () {
     })->name('catalog.warehouse');
 
     // Intelligence Routes
-    Route::get('/forecast', function () {
-        return view('intelligence.forecast');
-    })->name('intelligence.forecast');
+    Route::get('/forecast', [App\Http\Controllers\PrediksiPenjualanController::class, 'webIndex'])->name('intelligence.forecast');
+    Route::post('/forecast/generate', [App\Http\Controllers\PrediksiPenjualanController::class, 'generate'])->name('intelligence.forecast.generate');
 
     Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('intelligence.reports');
 

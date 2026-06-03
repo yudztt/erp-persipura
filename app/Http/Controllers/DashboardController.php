@@ -70,19 +70,43 @@ class DashboardController extends Controller
         $highestMonth = collect($chartData)->sortByDesc('total')->first()['month'] ?? '-';
 
         // 6. AI Forecast Card
-        $forecastMonth = now()->addMonth()->translatedFormat('F Y');
-        $prediksiBulanDepan = PrediksiPenjualan::with('produk')
-                                               ->whereMonth('tanggal_prediksi', now()->addMonth()->month)
-                                               ->whereYear('tanggal_prediksi', now()->addMonth()->year)
-                                               ->get();
-        $totalPrediksi = $prediksiBulanDepan->sum('hasil_prediksi');
-        $topPrediksi = $prediksiBulanDepan->sortByDesc('hasil_prediksi')->first();
-        $topProduk = $topPrediksi ? $topPrediksi->produk->nama_produk : '-';
+        // Mengambil bulan dan tahun terupdate dari data prediksi di database untuk menjaga keselarasan
+        $latestPredRecord = PrediksiPenjualan::latest('tanggal_prediksi')->first();
+        if ($latestPredRecord) {
+            $predMonth = \Carbon\Carbon::parse($latestPredRecord->tanggal_prediksi)->month;
+            $predYear = \Carbon\Carbon::parse($latestPredRecord->tanggal_prediksi)->year;
+            $forecastMonth = \Carbon\Carbon::parse($latestPredRecord->tanggal_prediksi)->translatedFormat('F Y');
+            
+            $prediksiBulanDepan = PrediksiPenjualan::with('produk')
+                ->whereMonth('tanggal_prediksi', $predMonth)
+                ->whereYear('tanggal_prediksi', $predYear)
+                ->get();
+        } else {
+            $forecastMonth = now()->translatedFormat('F Y');
+            $prediksiBulanDepan = collect();
+        }
+
+        // Kalkulasi Prediksi Omzet (Unit * Harga Jual Produk)
+        $totalPrediksiUnits = $prediksiBulanDepan->sum('hasil_prediksi');
+        $totalPrediksiOmzet = 0;
+        foreach ($prediksiBulanDepan as $pred) {
+            if ($pred->produk) {
+                $totalPrediksiOmzet += $pred->hasil_prediksi * $pred->produk->harga_jual;
+            }
+        }
+        $totalPrediksi = $totalPrediksiOmzet; // Menggunakan nama variabel yang diharapkan oleh Blade view
         
-        $kritisRestock = RestockRekomendasi::whereHas('prediksiPenjualan', function($q) {
-            $q->whereMonth('tanggal_prediksi', now()->addMonth()->month)
-              ->whereYear('tanggal_prediksi', now()->addMonth()->year);
-        })->where('status', 'Kritis')->count();
+        $topPrediksi = $prediksiBulanDepan->sortByDesc('hasil_prediksi')->first();
+        $topProduk = $topPrediksi && $topPrediksi->produk ? $topPrediksi->produk->nama_produk : '-';
+        
+        // Mengambil status 'stok rendah' untuk SKU kritis
+        $kritisRestock = 0;
+        if ($latestPredRecord) {
+            $kritisRestock = RestockRekomendasi::whereHas('prediksiPenjualan', function($q) use ($predMonth, $predYear) {
+                $q->whereMonth('tanggal_prediksi', $predMonth)
+                  ->whereYear('tanggal_prediksi', $predYear);
+            })->where('status', 'stok rendah')->count();
+        }
 
         // 7. Stok Rendah Table
         $stokRendahs = Produk::whereColumn('stok', '<=', 'stok_minimum')

@@ -1,3 +1,10 @@
+@php
+  // Fetch real low stock products dynamically from database
+  $lowStockProducts = \App\Models\Produk::whereColumn('stok', '<=', 'stok_minimum')
+                                      ->orderBy('stok', 'asc')
+                                      ->take(5)
+                                      ->get();
+@endphp
 <header class="topbar">
   <button onclick="toggleSidebar()" style="border:none;background:none;cursor:pointer;padding:4px;border-radius:6px;color:var(--gray-500);font-size:18px">
     <i class="ti ti-menu-2"></i>
@@ -8,27 +15,35 @@
   
   <form action="{{ route('inventory.index') }}" method="GET" class="topbar-search">
     <i class="ti ti-search" style="color:var(--gray-400);font-size:14px"></i>
-    <input type="text" name="search" placeholder="Search inventory, products..." value="{{ request('search') }}">
+    <input type="text" name="search" placeholder="Cari Inventaris, Produk..." value="{{ request('search') }}">
   </form>
   
   <div style="position:relative">
     <button class="topbar-btn" onclick="toggleNotif()">
       <i class="ti ti-bell"></i>
-      <span class="notif-dot"></span>
+      @if($lowStockProducts->count() > 0)
+        <span class="notif-dot"></span>
+      @endif
     </button>
     <div class="notif-panel" id="notifPanel">
       <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:14px;font-weight:600">Notifications</span>
-        <span style="font-size:11px;color:var(--red);cursor:pointer">Mark all read</span>
+        <span style="font-size:14px;font-weight:600">Notifikasi</span>
+        <span style="font-size:11px;color:var(--red);cursor:pointer" onclick="closeNotif()">Tutup</span>
       </div>
-      <div class="notif-item">
+      @forelse($lowStockProducts as $lowStock)
+      <div class="notif-item" onclick="window.location='{{ route('inventory.index', ['search' => $lowStock->nama_produk]) }}'">
         <div class="notif-dot-status" style="background:var(--red)"></div>
-        <div><div class="notif-text"><strong>Low stock alert</strong> — Jersey Kandang Persipura (Sz L) has 8 units left.</div><div class="notif-time">5 min ago</div></div>
+        <div>
+          <div class="notif-text"><strong>Peringatan Stok Rendah</strong> — Produk <strong>{{ $lowStock->nama_produk }}</strong> hanya tersisa <strong>{{ $lowStock->stok }}</strong> unit.</div>
+          <div class="notif-time">Batas minimum: {{ $lowStock->stok_minimum }} unit</div>
+        </div>
       </div>
-      <div class="notif-item">
-        <div class="notif-dot-status" style="background:#059669"></div>
-        <div><div class="notif-text"><strong>Stock In confirmed</strong> — PO #SI-2024-089 received.</div><div class="notif-time">1 hr ago</div></div>
+      @empty
+      <div style="padding:24px 16px;text-align:center;color:var(--gray-400)">
+        <i class="ti ti-bell-off" style="font-size:24px;opacity:0.5;display:block;margin-bottom:8px"></i>
+        <div style="font-size:12px">Semua stok produk terpantau aman!</div>
       </div>
+      @endforelse
     </div>
   </div>
   

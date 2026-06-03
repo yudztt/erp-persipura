@@ -11,10 +11,13 @@
                 <i class="ti ti-sparkles"></i>
                 <div>
                     <strong>AI Assistant</strong>
-                    <span>ERP Cendrawasih Karsa</span>
+                    <span>Cendrawasih Karsa Store</span>
                 </div>
             </div>
-            <button onclick="toggleAIChat()" class="ai-chat-close"><i class="ti ti-x"></i></button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button onclick="clearAIChat()" class="ai-chat-close" title="Hapus Obrolan" style="font-size: 14px; display: flex; align-items: center; justify-content: center; background: none; border: none; padding: 4px; cursor: pointer;"><i class="ti ti-trash"></i></button>
+                <button onclick="toggleAIChat()" class="ai-chat-close" style="display: flex; align-items: center; justify-content: center; background: none; border: none; padding: 4px; cursor: pointer;"><i class="ti ti-x"></i></button>
+            </div>
         </div>
         
         <div class="ai-chat-body" id="aiChatMessages">
@@ -32,80 +35,56 @@
     </div>
 </div>
 
-<style>
-/* Chatbot CSS */
-#aiChatWidget { position: fixed; bottom: 24px; right: 24px; z-index: 9999; font-family: 'Inter', system-ui, sans-serif; }
-#aiChatBtn { 
-    width: 56px; height: 56px; border-radius: 50%; background: #C1121F; color: white;
-    border: none; box-shadow: 0 4px 12px rgba(193,18,31,0.3); cursor: pointer;
-    display: flex; align-items: center; justify-content: center; transition: 0.2s;
-}
-#aiChatBtn:hover { transform: scale(1.05); }
-#aiChatBtn i { font-size: 28px; }
-
-#aiChatPanel {
-    position: absolute; bottom: 70px; right: 0; width: 340px; height: 480px;
-    background: #fff; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    display: flex; flex-direction: column; overflow: hidden; border: 1px solid #E2E8F0;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    transform-origin: bottom right;
-}
-#aiChatPanel.hidden { transform: scale(0.8); opacity: 0; pointer-events: none; }
-
-.ai-chat-header {
-    background: #0F172A; color: white; padding: 16px;
-    display: flex; justify-content: space-between; align-items: center;
-}
-.ai-chat-title { display: flex; align-items: center; gap: 10px; }
-.ai-chat-title i { font-size: 20px; color: #FCA5A5; }
-.ai-chat-title div { display: flex; flex-direction: column; line-height: 1.2; }
-.ai-chat-title strong { font-size: 14px; }
-.ai-chat-title span { font-size: 11px; color: #94A3B8; }
-.ai-chat-close { background: none; border: none; color: #94A3B8; cursor: pointer; font-size: 18px; padding: 4px; }
-.ai-chat-close:hover { color: white; }
-
-.ai-chat-body {
-    flex: 1; padding: 16px; overflow-y: auto; background: #F8FAFC;
-    display: flex; flex-direction: column; gap: 12px; font-size: 13px;
-}
-.ai-msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; line-height: 1.4; word-wrap: break-word;}
-.ai-msg.bot { background: white; color: #1E293B; border: 1px solid #E2E8F0; align-self: flex-start; border-bottom-left-radius: 4px; }
-.ai-msg.user { background: #C1121F; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-.ai-typing { display: flex; gap: 4px; padding: 12px 14px; align-self: flex-start; background: white; border-radius: 12px; border: 1px solid #E2E8F0;}
-.ai-typing span { width: 6px; height: 6px; background: #94A3B8; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
-.ai-typing span:nth-child(1) { animation-delay: -0.32s; }
-.ai-typing span:nth-child(2) { animation-delay: -0.16s; }
-@keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
-
-.ai-chat-footer { padding: 12px 16px; background: white; border-top: 1px solid #F1F5F9; }
-#aiChatForm { display: flex; gap: 8px; margin: 0; }
-#aiChatInput {
-    flex: 1; padding: 10px 14px; border: 1px solid #CBD5E1; border-radius: 20px;
-    font-size: 13px; outline: none; transition: 0.2s;
-}
-#aiChatInput:focus { border-color: #C1121F; }
-#aiChatSend {
-    width: 38px; height: 38px; border-radius: 50%; background: #0F172A; color: white;
-    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-}
-#aiChatSend:hover { background: #1E293B; }
-#aiChatSend i { font-size: 16px; margin-left: -2px; margin-top: 1px;}
-#aiChatSend:disabled { background: #94A3B8; cursor: not-allowed; }
-
-@media (max-width: 480px) {
-    #aiChatPanel {
-        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-        width: 100%; height: 100%; border-radius: 0; transform-origin: center;
-    }
-}
-</style>
 
 <script>
+    // Muat dan kembalikan status chat saat halaman dimuat
+    document.addEventListener("DOMContentLoaded", () => {
+        const panel = document.getElementById('aiChatPanel');
+        const messagesBox = document.getElementById('aiChatMessages');
+        
+        // Kembalikan status buka/tutup
+        const isOpen = localStorage.getItem('ai_chat_open');
+        if (isOpen === 'true') {
+            panel.classList.remove('hidden');
+        } else {
+            panel.classList.add('hidden');
+        }
+
+        // Kembalikan riwayat pesan
+        const savedHistory = localStorage.getItem('ai_chat_history');
+        if (savedHistory) {
+            messagesBox.innerHTML = savedHistory;
+        }
+        
+        scrollToBottom();
+    });
+
+    // Simpan riwayat chat ke localStorage (mengabaikan indikator mengetik)
+    function saveChatHistory() {
+        const messagesBox = document.getElementById('aiChatMessages');
+        const clone = messagesBox.cloneNode(true);
+        const typingIndicators = clone.querySelectorAll('.ai-typing');
+        typingIndicators.forEach(el => el.remove());
+        localStorage.setItem('ai_chat_history', clone.innerHTML);
+    }
+
     function toggleAIChat() {
         const panel = document.getElementById('aiChatPanel');
         panel.classList.toggle('hidden');
-        if (!panel.classList.contains('hidden')) {
+        const isOpen = !panel.classList.contains('hidden');
+        localStorage.setItem('ai_chat_open', isOpen);
+        if (isOpen) {
             document.getElementById('aiChatInput').focus();
+            scrollToBottom();
+        }
+    }
+
+    // Bersihkan obrolan dan riwayat
+    function clearAIChat() {
+        if (confirm("Hapus semua riwayat obrolan AI?")) {
+            const messagesBox = document.getElementById('aiChatMessages');
+            messagesBox.innerHTML = `<div class="ai-msg bot">Halo! Saya Asisten AI Cendrawasih Karsa. Ada yang bisa saya bantu terkait inventori, prediksi, atau laporan hari ini?</div>`;
+            localStorage.removeItem('ai_chat_history');
             scrollToBottom();
         }
     }
@@ -119,14 +98,15 @@
         const messagesBox = document.getElementById('aiChatMessages');
         const sendBtn = document.getElementById('aiChatSend');
 
-        // Append User Msg
+        // Tambah pesan user ke chat box
         messagesBox.innerHTML += `<div class="ai-msg user">${escapeHTML(message)}</div>`;
         input.value = '';
         input.disabled = true;
         sendBtn.disabled = true;
         scrollToBottom();
+        saveChatHistory();
 
-        // Append Typing indicator
+        // Tambah indikator mengetik
         const typingId = 'typing-' + Date.now();
         messagesBox.innerHTML += `<div class="ai-typing" id="${typingId}"><span></span><span></span><span></span></div>`;
         scrollToBottom();
@@ -145,7 +125,7 @@
             document.getElementById(typingId).remove();
             
             if (response.ok) {
-                // format simple line breaks
+                // format line break sederhana
                 const formattedReply = escapeHTML(data.reply).replace(/\n/g, '<br>');
                 messagesBox.innerHTML += `<div class="ai-msg bot">${formattedReply}</div>`;
             } else {
@@ -153,7 +133,8 @@
             }
 
         } catch (error) {
-            document.getElementById(typingId)?.remove();
+            const typingEl = document.getElementById(typingId);
+            if (typingEl) typingEl.remove();
             messagesBox.innerHTML += `<div class="ai-msg bot" style="color:#C1121F">Error: Koneksi terputus.</div>`;
         }
 
@@ -161,6 +142,7 @@
         sendBtn.disabled = false;
         input.focus();
         scrollToBottom();
+        saveChatHistory();
     }
 
     function scrollToBottom() {

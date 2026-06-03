@@ -45,6 +45,29 @@
         
         .footer { width: 100%; text-align: center; font-size: 10px; color: #95a5a6; position: fixed; bottom: -20px; padding-top: 10px; border-top: 1px solid #ecf0f1; }
         .page-number:before { content: counter(page); }
+
+        .ai-analysis-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            border-left: 5px solid #C1121F;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+        }
+        .ai-title {
+            font-weight: bold;
+            color: #0f172a;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+        .ai-text {
+            font-size: 10px;
+            color: #334155;
+            line-height: 1.5;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -95,15 +118,24 @@
         </div>
     </div>
 
+    @if($type === 'sales' && !empty($aiAnalysis))
+        <div class="ai-analysis-box">
+            <div class="ai-title">⚡ AI Analisis Performa &amp; Rekomendasi</div>
+            <p class="ai-text">{{ $aiAnalysis }}</p>
+        </div>
+    @endif
+
     <table class="data-table">
         <thead>
             <tr>
-                <th width="30%">Produk</th>
-                <th width="20%">Kategori</th>
+                <th width="{{ $type === 'inventory' ? '30%' : '35%' }}">Produk</th>
+                <th width="{{ $type === 'inventory' ? '20%' : '25%' }}">Kategori</th>
                 <th width="10%" class="text-center">Unit Terjual</th>
                 <th width="15%" class="text-right">Pendapatan (Rp)</th>
                 <th width="15%" class="text-right">Rata-Rata Harga (Rp)</th>
-                <th width="10%" class="text-center">Sisa Stok</th>
+                @if($type === 'inventory')
+                    <th width="10%" class="text-center">Sisa Stok</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -114,12 +146,14 @@
                 <td class="text-center">{{ $row['unit_terjual'] }}</td>
                 <td class="text-right">{{ number_format($row['pendapatan'], 0, ',', '.') }}</td>
                 <td class="text-right">{{ number_format($row['rata_rata_harga'], 0, ',', '.') }}</td>
-                <td class="text-center">{{ $row['sisa_stok'] }}</td>
+                @if($type === 'inventory')
+                    <td class="text-center">{{ $row['sisa_stok'] }}</td>
+                @endif
             </tr>
             @endforeach
             @if(empty($reportData))
             <tr>
-                <td colspan="6" class="text-center" style="padding: 20px; font-style: italic; color: #7f8c8d;">Tidak ada data untuk periode ini</td>
+                <td colspan="{{ $type === 'inventory' ? 6 : 5 }}" class="text-center" style="padding: 20px; font-style: italic; color: #7f8c8d;">Tidak ada data untuk periode ini</td>
             </tr>
             @endif
         </tbody>

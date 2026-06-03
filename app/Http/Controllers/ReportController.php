@@ -9,6 +9,8 @@ use App\Models\Produk;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
 {
@@ -27,7 +29,8 @@ class ReportController extends Controller
             'totalStockIn' => 0,
             'cogs' => 0,
             'margin' => 0,
-            'reportData' => []
+            'reportData' => [],
+            'aiAnalysis' => ''
         ];
 
         if ($type === 'sales') {
@@ -83,6 +86,55 @@ class ReportController extends Controller
 
             $data['reportData'] = $reportData;
             $data['reportTitle'] = 'Ringkasan Penjualan';
+
+            // DYNAMIC AI REPORT ANALYSIS: Generate on-demand business analysis via OpenRouter
+            if (!empty($reportData)) {
+                $apiKey = config('services.openrouter.api_key');
+                $model = config('services.openrouter.model', 'google/gemma-4-31b-it:free');
+                $baseUrl = 'https://openrouter.ai/api/v1';
+
+                if (!empty($apiKey)) {
+                    $topProducts = array_slice($reportData, 0, 3);
+                    $prodStr = "";
+                    foreach ($topProducts as $tp) {
+                        $prodStr .= "- {$tp['produk']} (Terjual: {$tp['unit_terjual']} unit, Pendapatan: Rp " . number_format($tp['pendapatan'], 0, ',', '.') . ")\n";
+                    }
+                    
+                    $prompt = "Anda adalah Analis Bisnis Senior ERP olahraga Persipura Cendrawasih Karsa Store. Analisis data penjualan berikut:\n" .
+                        "- Periode: $startDate s/d $endDate\n" .
+                        "- Total Pendapatan: Rp " . number_format($data['totalRevenue'], 0, ',', '.') . "\n" .
+                        "- Unit Terjual: " . number_format($data['unitsSold'], 0) . " unit\n" .
+                        "- Estimasi HPP (COGS): Rp " . number_format($data['cogs'], 0, ',', '.') . "\n" .
+                        "- Margin Kotor: " . number_format($data['margin'], 1) . "%\n" .
+                        "- Top 3 Produk Terlaris:\n" . $prodStr . "\n" .
+                        "Berikan 2-3 kalimat analisis bisnis berbahasa Indonesia yang formal, taktis, dan cerdas mengenai performa periode ini, serta berikan 1 rekomendasi operasional konkrit untuk bulan depan. Tulis langsung tanggapan Anda tanpa salam pembuka.";
+
+                    try {
+                        $response = Http::timeout(15)
+                            ->withHeaders([
+                                'Content-Type'  => 'application/json',
+                                'Authorization' => 'Bearer ' . $apiKey,
+                            ])
+                            ->post($baseUrl . '/chat/completions', [
+                                'model'       => $model,
+                                'messages'    => [
+                                    ['role' => 'user', 'content' => $prompt]
+                                ],
+                                'temperature' => 0.4,
+                            ]);
+
+                        if ($response->successful()) {
+                            $data['aiAnalysis'] = trim($response->json()['choices'][0]['message']['content'] ?? '');
+                        }
+                    } catch (\Exception $ex) {
+                        Log::error('Report AI Analysis generation failed: ' . $ex->getMessage());
+                    }
+                }
+
+                if (empty($data['aiAnalysis'])) {
+                    $data['aiAnalysis'] = "Berdasarkan laporan penjualan periode ini, performa bisnis Cendrawasih Karsa Store terpantau solid dengan pencapaian omzet sebesar Rp " . number_format($data['totalRevenue'], 0, ',', '.') . " dari " . number_format($data['unitsSold'], 0) . " unit produk terdistribusi. Disarankan untuk memprioritaskan pemeliharaan ketersediaan stok pada 3 produk teratas demi mengantisipasi lonjakan permintaan di periode berikutnya.";
+                }
+            }
 
         } elseif ($type === 'inventory') {
             // Inventory Report
